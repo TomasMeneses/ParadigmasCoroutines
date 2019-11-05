@@ -1,8 +1,8 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-var rowArray = []
-var countLines = 0;
+var rowArray = [];
+var countLines = 1;
 const csvWriter = createCsvWriter({
     path: 'out.csv',
     header: [
@@ -13,7 +13,7 @@ const csvWriter = createCsvWriter({
         { id: 'Variable_code', title: 'Variable_code' },
         { id: 'Variable_name', title: 'Variable_name' },
         { id: 'Variable_category', title: 'Variable_category' },
-        { id: 'Value: : ', title: 'Value: : ' },
+        { id: 'Value', title: 'Value' },
         { id: 'Industry_code_ANZSIC06', title: 'Industry_code_ANZSIC06' }
     ]
 });
@@ -21,25 +21,29 @@ const csvWriter = createCsvWriter({
 
 fs.createReadStream('data.csv')
     .pipe(csv())
-    .on('data', (row) => {
-        countLines++;
-        rowArray.push(row);
-        if (countLines % 1000 == 0) {
-            escreveCsv(rowArray);
-        }
-        console.log(row);
-    })
+    .on('data', escreveCsv)
     .on('end', () => {
         console.log('CSV file successfully processed');
     });
 
 
-function escreveCsv(data) {
-    csvWriter
-        .writeRecords(data)
-        .then(() => console.log('The CSV file was written successfully'));
+function* newFunction(row) {
+    countLines++;
+    rowArray.push(row);
+    if (countLines % 1000 == 0) {
+        yield rowArray;
+        rowArray = [];
+    }
 }
 
+function escreveCsv(row) {
+    for (const value of newFunction(row)) {
+        csvWriter
+            .writeRecords(value)
+            .then(() => console.log('The CSV file was written successfully'));
+    }
+
+}
 
 // function* delays() {
 //     let a = yield delay(800, "Hello, I'm an");
