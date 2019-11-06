@@ -23,53 +23,28 @@ fs.createReadStream('data.csv')
     .pipe(csv())
     .on('data', escreveCsv)
     .on('end', () => {
-        console.log('CSV file successfully processed');
+        console.log('CSV Original foi totalmente lido');
     });
 
 
-function* newFunction(row) {
+function* coroutineFunction(row) {
     countLines++;
     rowArray.push(row);
-    if (countLines % 1000 == 0) {
+    if ((rowArray.length % 1000 == 0)) {
         yield rowArray;
+        console.log('CSV Quebrado em parcela de 1000 linhas.');
         rowArray = [];
     }
 }
 
 function escreveCsv(row) {
-    for (const value of newFunction(row)) {
+    for (const arrayMilLinhas of coroutineFunction(row)) {
         csvWriter
-            .writeRecords(value)
-            .then(() => console.log('The CSV file was written successfully'));
+            .writeRecords(arrayMilLinhas)
+            .then(() => console.log('Parte do CSV foi escrita'));
     }
 
 }
-
-// function* delays() {
-//     let a = yield delay(800, "Hello, I'm an");
-//     console.log(a);
-
-//     let b = yield delay(400, "async coroutine!");
-//     console.log(b);
-// }
-
-// const coroutine = nextValue => iterator => {
-//     const { done, value } = iterator.next(nextValue);
-
-//     if (done) {
-//         return;
-//     }
-
-//     if (value.constructor === Promise) {
-//         value.then(promiseValue => {
-//             coroutine(promiseValue)(iterator);
-//         });
-//     } else {
-//         coroutine(value)(iterator);
-//     }
-// };
-
-// const delay = (ms, result) =>
-//     new Promise(resolve => setTimeout(() => resolve(result), ms));
-
-// coroutine()(delays());
+// tenha o node instalado
+// no cmd ou terminal digite: npm i
+//para executar o codigo digite no terminal: node index.js
